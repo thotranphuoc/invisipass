@@ -1,0 +1,36 @@
+.passcode-container {
+  background: #0d1117; 
+  padding: 30px;
+  border-radius: 20px;
+  border: 1px solid #30363d;
+  text-align: center;
+}
+
+.inputs-row {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  
+  .code-field {
+    width: 45px;
+    height: 60px;
+    background: #161b22;
+    border: 2px solid #30363d;
+    border-radius: 12px;
+    color: #00d1ff;
+    font-size: 2rem;
+    text-align: center;
+    outline: none;
+
+    &:focus {
+      border-color: #00d1ff;
+      background: #0d1117;
+    }
+  }
+}
+
+.unlock-btn {
+  background-color: #00d1ff !important;
+  color: #000 !important;
+  font-weight: bold !important;
+}

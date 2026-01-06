@@ -1,0 +1,53 @@
+<mat-toolbar class="custom-toolbar">
+  <div class="logo-area">
+    <span class="brand">INVISIPASS</span>
+    <mat-icon class="brand-icon">shield</mat-icon>
+  </div>
+  <span class="spacer"></span>
+  @if (authService.user()) {
+    <div class="user-info">
+      <span class="user-name">{{ authService.user()?.displayName }}</span>
+      <button mat-icon-button (click)="authService.logout()">
+        <mat-icon color="warn">logout</mat-icon>
+      </button>
+    </div>
+  }
+</mat-toolbar>
+
+<main class="main-container">
+  @if (!authService.user()) {
+    <mat-card class="login-card">
+      <div class="login-illustration">
+        <mat-icon class="hero-icon">fingerprint</mat-icon>
+      </div>
+      
+      <mat-card-header>
+        <mat-card-title>INVISIPASS</mat-card-title>
+        <mat-card-subtitle>Mật khẩu của bạn, bí mật của chúng tôi.</mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content class="description">
+        <p>
+          Dữ liệu được mã hóa <strong>AES-256</strong> ngay tại trình duyệt. 
+          Ngay cả chúng tôi cũng không thể xem được mật khẩu của bạn.
+        </p>
+      </mat-card-content>
+
+      <mat-card-actions>
+        <button mat-raised-button class="google-btn" (click)="authService.loginWithGoogle()">
+          <mat-icon style="margin-right: 12px;">account_circle</mat-icon>
+          Đăng nhập Google
+        </button>
+      </mat-card-actions>
+      
+      <div class="footer-text">
+        © 2026 Invisipass Project. All rights reserved.
+      </div>
+    </mat-card>
+  } @else {
+    <div class="dashboard-layout">
+      <app-password-form></app-password-form>
+      <app-password-list></app-password-list>
+    </div>
+  }
+</main>

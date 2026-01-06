@@ -1,1 +1,36 @@
-/* You can add global styles to this file, and also import other style files */
+/* 1. Import Theme mặc định (BẮT BUỘC) */
+@import "@angular/material/prebuilt-themes/azure-blue.css";
+
+/* 2. Global Reset - Set nền đen tuyệt đối */
+html, body { 
+  height: 100%; 
+  margin: 0; 
+  background-color: #05070a !important; /* Đen xanh thẫm */
+  color: #ffffff;
+  font-family: 'Roboto', sans-serif;
+}
+
+/* 3. Hiệu ứng làm mờ nền khi bật PopUp (Dialog) */
+.cdk-overlay-backdrop {
+  backdrop-filter: blur(8px); 
+  background-color: rgba(0, 0, 0, 0.8) !important;
+}
+
+/* 4. Xóa nền trắng mặc định của Dialog để dùng nền custom */
+.custom-dialog-container .mat-mdc-dialog-container .mdc-dialog__surface {
+  background: transparent !important;
+  box-shadow: none !important;
+  border-radius: 24px !important;
+}
+
+/* 5. Custom thanh cuộn cho hợp tông màu */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #05070a; }
+::-webkit-scrollbar-thumb { background: #21262d; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #00d1ff; }
+
+/* Ép buộc Dialog phải hiển thị nội dung bên trong */
+.custom-dialog-container .mat-mdc-dialog-container {
+  --mdc-dialog-container-color: transparent !important;
+  display: block !important;
+}

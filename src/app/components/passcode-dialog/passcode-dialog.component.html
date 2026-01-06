@@ -1,0 +1,33 @@
+<div class="passcode-container">
+  <h2 style="color: #00d1ff; margin-bottom: 20px;">ENTER VAULT PASSCODE</h2>
+  
+  <div class="inputs-row">
+       @for (d of digits; track $index) {
+    <input 
+      type="password" 
+      inputmode="numeric"
+      maxlength="1" 
+      (input)="onInput($event, $index)"
+      (keydown)="onKeyDown($event, $index)"
+      [value]="digits[$index]"
+      class="code-field">
+  }
+    <input #inputBox type="password" inputmode="numeric" maxlength="1" 
+           (input)="onInput($event, 0)" (keydown)="onKeyDown($event, 0)" class="code-field">
+    <input #inputBox type="password" inputmode="numeric" maxlength="1" 
+           (input)="onInput($event, 1)" (keydown)="onKeyDown($event, 1)" class="code-field">
+    <input #inputBox type="password" inputmode="numeric" maxlength="1" 
+           (input)="onInput($event, 2)" (keydown)="onKeyDown($event, 2)" class="code-field">
+    <input #inputBox type="password" inputmode="numeric" maxlength="1" 
+           (input)="onInput($event, 3)" (keydown)="onKeyDown($event, 3)" class="code-field">
+    <input #inputBox type="password" inputmode="numeric" maxlength="1" 
+           (input)="onInput($event, 4)" (keydown)="onKeyDown($event, 4)" class="code-field">
+    <input #inputBox type="password" inputmode="numeric" maxlength="1" 
+           (input)="onInput($event, 5)" (keydown)="onKeyDown($event, 5)" class="code-field">
+  </div>
+
+  <div style="margin-top: 30px; display: flex; gap: 10px;">
+    <button mat-flat-button color="warn" mat-dialog-close style="flex: 1;">CANCEL</button>
+    <button mat-flat-button class="unlock-btn" (click)="submit()" style="flex: 2;">UNLOCK</button>
+  </div>
+</div>
