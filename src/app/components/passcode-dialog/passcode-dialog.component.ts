@@ -1,50 +1,77 @@
-import { Component, ElementRef, ViewChildren, QueryList } from '@angular/core';
+import { Component, EventEmitter, Output, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
+import { FormsModule } from '@angular/forms';
+import { EncryptionService } from '../../services/encryption.service';
 
 @Component({
   selector: 'app-passcode-dialog',
   standalone: true,
-  imports: [CommonModule, MatDialogModule, MatButtonModule, MatIconModule],
-  templateUrl: './passcode-dialog.component.html',
-  styleUrl: './passcode-dialog.component.scss'
+  imports: [CommonModule, FormsModule],
+  template: `
+    <div class="modal-overlay" (click)="onCancel()">
+      <div class="modal-content glass" (click)="$event.stopPropagation()">
+        <h2 class="title">Security Check</h2>
+        <p class="subtitle">Enter your 6-digit PIN to access vault</p>
+        
+        <div class="code-inputs" (paste)="onPaste($event)">
+          <input *ngFor="let digit of [0,1,2,3,4,5]; let i = index"
+            type="password"
+            maxlength="1"
+            class="code-field"
+            [(ngModel)]="codes[i]"
+            (input)="onInput($event, i)"
+            (keydown.backspace)="onBackspace($event, i)"
+            inputmode="numeric" />
+        </div>
+
+        <div class="actions">
+          <button class="btn-secondary" (click)="onCancel()">Cancel</button>
+          <button class="btn-primary" [disabled]="!isComplete()" (click)="onUnlock()">
+            Unlock Now
+          </button>
+        </div>
+      </div>
+    </div>
+  `,
+  styleUrls: ['./passcode-dialog.component.scss']
 })
 export class PasscodeDialogComponent {
-  digits = ['', '', '', '', '', ''];
-  @ViewChildren('inputBox') inputs!: QueryList<ElementRef>;
-
-  constructor(private dialogRef: MatDialogRef<PasscodeDialogComponent>) {}
-
-  // Sửa tại passcode-dialog.component.ts
-onInput(event: any, index: number) {
-  const val = event.target.value;
-  this.digits[index] = val.slice(-1);
-
-  if (val && index < 5) {
-    // Không dùng this.inputs.toArray() nữa vì nó hay bị undefined ở bản TS mới
-    // Chuyển sang dùng DOM selector trực tiếp trong component
-    const allInputs = document.querySelectorAll('.code-field');
-    const nextInput = allInputs[index + 1] as HTMLInputElement;
-    if (nextInput) nextInput.focus();
-  }
+  @Output() close = new EventEmitter<void>(); // Event để đóng modal
   
-  if (this.digits.every(d => d !== '')) {
-    this.submit();
-  }
-}
+  private encryptionService = inject(EncryptionService);
+  codes: string[] = ['', '', '', '', '', ''];
 
-onKeyDown(event: KeyboardEvent, index: number) {
-  if (event.key === 'Backspace' && !this.digits[index] && index > 0) {
-    // Tìm ô input phía trước
-    const prevInput = (event.target as HTMLInputElement).previousElementSibling as HTMLInputElement;
-    if (prevInput) prevInput.focus();
-  }
-}
+  isComplete() { return this.codes.every(c => c !== ''); }
 
-  submit() {
-    const code = this.digits.join('');
-    this.dialogRef.close(code);
+  onInput(event: any, index: number) {
+    if (event.target.value && index < 5) {
+      const inputs = document.querySelectorAll('.code-field');
+      (inputs[index + 1] as HTMLInputElement).focus();
+    }
+  }
+
+  onBackspace(event: any, index: number) {
+    if (!this.codes[index] && index > 0) {
+      const inputs = document.querySelectorAll('.code-field');
+      (inputs[index - 1] as HTMLInputElement).focus();
+    }
+  }
+
+  onPaste(event: ClipboardEvent) {
+    const data = event.clipboardData?.getData('text').slice(0, 6).split('');
+    if (data) {
+      data.forEach((char, i) => this.codes[i] = char);
+    }
+  }
+
+  onUnlock() {
+    if (this.isComplete()) {
+      this.encryptionService.setPasscode(this.codes.join(''));
+      this.close.emit(); // Đóng modal sau khi unlock thành công
+    }
+  }
+
+  onCancel() {
+    this.close.emit();
   }
 }

@@ -1,59 +1,55 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { PasswordService } from '../../services/password.service';
 import { EncryptionService } from '../../services/encryption.service';
 
 @Component({
   selector: 'app-password-form',
   standalone: true,
-  imports: [
-    CommonModule, 
-    FormsModule, 
-    MatFormFieldModule, 
-    MatInputModule, 
-    MatButtonModule, 
-    MatIconModule
-  ],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './password-form.component.html',
-  styleUrl: './password-form.component.scss'
+  styleUrls: ['./password-form.component.scss']
 })
 export class PasswordFormComponent {
+  private fb = inject(FormBuilder);
   private passwordService = inject(PasswordService);
   private encryptionService = inject(EncryptionService);
 
-  appPath = '';
-  label = '';
-  username = '';
-  password = '';
-  userPasscode = '';
+  passwordForm: FormGroup = this.fb.group({
+    label: ['', Validators.required],
+    appPath: ['', Validators.required],
+    username: ['', Validators.required],
+    password: ['', Validators.required]
+  });
 
+  // Thêm hàm save() để khớp với lỗi TS2339 trong HTML
   async save() {
-    // Tạm thời set passcode để thực hiện mã hóa
-    this.encryptionService.setPasscode(this.userPasscode);
+    if (this.passwordForm.invalid) return;
+
+    // Kiểm tra xem đã mở khóa vault chưa trước khi mã hóa
+    if (!this.encryptionService.getIsUnlocked()) {
+      alert('Vui lòng mở khóa Vault trước khi thêm mật khẩu mới!');
+      return;
+    }
 
     try {
-      await this.passwordService.addAccount(
-        this.appPath, 
-        this.label, 
-        this.username, 
-        this.password
-      );
+      const formValue = this.passwordForm.value;
       
-      // Reset form sau khi lưu thành công
-      this.appPath = ''; 
-      this.label = ''; 
-      this.username = ''; 
-      this.password = ''; 
-      this.userPasscode = '';
-      
-      alert('Đã lưu mật khẩu tàng hình thành công!');
-    } catch (e) {
-      alert('Lỗi: ' + e);
+      const encryptedData = {
+        label: formValue.label,
+        appPath: formValue.appPath,
+        username: this.encryptionService.encrypt(formValue.username),
+        password: this.encryptionService.encrypt(formValue.password),
+        createdAt: new Date()
+      };
+
+      await this.passwordService.addAccount(encryptedData);
+      this.passwordForm.reset();
+      alert('Đã lưu mật khẩu an toàn!');
+    } catch (error) {
+      console.error('Lỗi khi lưu:', error);
+      alert('Không thể lưu dữ liệu. Hãy kiểm tra lại kết nối.');
     }
   }
 }

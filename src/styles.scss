@@ -1,36 +1,32 @@
-/* 1. Import Theme mặc định (BẮT BUỘC) */
-@import "@angular/material/prebuilt-themes/azure-blue.css";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
-/* 2. Global Reset - Set nền đen tuyệt đối */
-html, body { 
-  height: 100%; 
-  margin: 0; 
-  background-color: #05070a !important; /* Đen xanh thẫm */
-  color: #ffffff;
-  font-family: 'Roboto', sans-serif;
+:root {
+  --bg-dark: #05070a;
+  --bg-card: rgba(13, 17, 23, 0.7);
+  --accent-cyan: #00d1ff;
+  --text-primary: #ffffff;
+  --text-secondary: #94a3b8;
+  --border-color: rgba(255, 255, 255, 0.1);
 }
 
-/* 3. Hiệu ứng làm mờ nền khi bật PopUp (Dialog) */
-.cdk-overlay-backdrop {
-  backdrop-filter: blur(8px); 
-  background-color: rgba(0, 0, 0, 0.8) !important;
+// Quan trọng: Đảm bảo padding không làm tăng chiều rộng thực tế của phần tử
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-/* 4. Xóa nền trắng mặc định của Dialog để dùng nền custom */
-.custom-dialog-container .mat-mdc-dialog-container .mdc-dialog__surface {
-  background: transparent !important;
-  box-shadow: none !important;
-  border-radius: 24px !important;
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--bg-dark);
+  color: var(--text-primary);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* 5. Custom thanh cuộn cho hợp tông màu */
-::-webkit-scrollbar { width: 8px; }
-::-webkit-scrollbar-track { background: #05070a; }
-::-webkit-scrollbar-thumb { background: #21262d; border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: #00d1ff; }
-
-/* Ép buộc Dialog phải hiển thị nội dung bên trong */
-.custom-dialog-container .mat-mdc-dialog-container {
-  --mdc-dialog-container-color: transparent !important;
-  display: block !important;
+.glass {
+  background: var(--bg-card);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-color);
 }

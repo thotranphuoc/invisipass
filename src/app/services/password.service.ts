@@ -1,34 +1,48 @@
-import { inject, Injectable } from '@angular/core';
-import { Firestore, collection, collectionData, query, addDoc, serverTimestamp } from '@angular/fire/firestore';
-import { Auth } from '@angular/fire/auth';
+import { Injectable, inject } from '@angular/core';
+import { Firestore, collection, collectionData, addDoc, deleteDoc, doc, updateDoc, query, orderBy } from '@angular/fire/firestore';
+import { Auth, authState, User } from '@angular/fire/auth';
+import { PasswordAccount } from '../models/password-account.interface';
 import { Observable, of } from 'rxjs';
-import { PasswordAccount } from '../models/password-account.interface'; // Import interface
+import { switchMap } from 'rxjs/operators';
 
-@Injectable({ providedIn: 'root' })
+@Injectable({
+  providedIn: 'root'
+})
 export class PasswordService {
   private firestore = inject(Firestore);
   private auth = inject(Auth);
 
-  getAccounts(): Observable<PasswordAccount[]> {
-    const user = this.auth.currentUser;
-    if (!user) return of([]);
-
-    const colRef = collection(this.firestore, `users/${user.uid}/accounts`);
-    const q = query(colRef);
-    
-    // Ép kiểu dữ liệu trả về từ Firestore thành mảng PasswordAccount
-    return collectionData(q, { idField: 'id' }) as Observable<PasswordAccount[]>;
+  getPasswords(): Observable<PasswordAccount[]> {
+    return authState(this.auth).pipe(
+      switchMap((user: User | null) => {
+        if (user) {
+          const colRef = collection(this.firestore, `users/${user.uid}/accounts`);
+          const q = query(colRef, orderBy('createdAt', 'desc'));
+          return collectionData(q, { idField: 'id' }) as Observable<PasswordAccount[]>;
+        }
+        return of([]);
+      })
+    );
   }
 
-  // Cập nhật hàm addAccount để dùng interface
-  addAccount(data: Omit<PasswordAccount, 'id' | 'createdAt'>) {
+  async addAccount(account: any) {
     const user = this.auth.currentUser;
     if (!user) return;
-
     const colRef = collection(this.firestore, `users/${user.uid}/accounts`);
-    return addDoc(colRef, {
-      ...data,
-      createdAt: serverTimestamp()
-    });
+    return addDoc(colRef, { ...account, createdAt: new Date() });
+  }
+
+  async updateAccount(id: string, data: Partial<PasswordAccount>) {
+    const user = this.auth.currentUser;
+    if (!user) throw new Error('Unauthenticated');
+    const docRef = doc(this.firestore, `users/${user.uid}/accounts/${id}`);
+    return updateDoc(docRef, data);
+  }
+
+  async deleteAccount(id: string) {
+    const user = this.auth.currentUser;
+    if (!user) return;
+    const docRef = doc(this.firestore, `users/${user.uid}/accounts/${id}`);
+    return deleteDoc(docRef);
   }
 }
