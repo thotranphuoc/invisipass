@@ -1,56 +1,34 @@
-import { Injectable, inject } from '@angular/core';
-import { 
-  Firestore, 
-  collection, 
-  addDoc, 
-  collectionData, 
-  query, 
-  where,
-  serverTimestamp 
-} from '@angular/fire/firestore';
+import { inject, Injectable } from '@angular/core';
+import { Firestore, collection, collectionData, query, addDoc, serverTimestamp } from '@angular/fire/firestore';
 import { Auth } from '@angular/fire/auth';
-import { EncryptionService } from './encryption.service';
-import { Observable, map, of } from 'rxjs';
+import { Observable, of } from 'rxjs';
+import { PasswordAccount } from '../models/password-account.interface'; // Import interface
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class PasswordService {
-  // Sử dụng inject() thay cho constructor injection theo chuẩn Angular 21
   private firestore = inject(Firestore);
   private auth = inject(Auth);
-  private encryptionService = inject(EncryptionService);
 
-  // Thêm tài khoản mới (Mã hóa trước khi lưu)
-  async addAccount(appPath: string, label: string, user: string, pass: string) {
-    const currentUser = this.auth.currentUser;
-    if (!currentUser) throw new Error('Chưa đăng nhập');
+  getAccounts(): Observable<PasswordAccount[]> {
+    const user = this.auth.currentUser;
+    if (!user) return of([]);
 
-    // Thực hiện mã hóa qua EncryptionService
-    const encryptedUser = this.encryptionService.encrypt(user);
-    const encryptedPass = this.encryptionService.encrypt(pass);
+    const colRef = collection(this.firestore, `users/${user.uid}/accounts`);
+    const q = query(colRef);
+    
+    // Ép kiểu dữ liệu trả về từ Firestore thành mảng PasswordAccount
+    return collectionData(q, { idField: 'id' }) as Observable<PasswordAccount[]>;
+  }
 
-    const path = `users/${currentUser.uid}/accounts`;
-    const colRef = collection(this.firestore, path);
+  // Cập nhật hàm addAccount để dùng interface
+  addAccount(data: Omit<PasswordAccount, 'id' | 'createdAt'>) {
+    const user = this.auth.currentUser;
+    if (!user) return;
 
+    const colRef = collection(this.firestore, `users/${user.uid}/accounts`);
     return addDoc(colRef, {
-      appPath,
-      label,
-      username: encryptedUser,
-      password: encryptedPass,
+      ...data,
       createdAt: serverTimestamp()
     });
   }
-
-
-getAccounts() {
-  const currentUser = this.auth.currentUser;
-  if (!currentUser) return of([]); // trả về mảng rỗng khi chưa login
-
-  const colRef = collection(this.firestore, `users/${currentUser.uid}/accounts`);
-  const q = query(colRef); // BẮT BUỘC có dòng này
-
-  // casting tạm để tránh check runtime giữa firebase/@angular/fire nếu vẫn còn mismatch
-  return collectionData(q as unknown as any, { idField: 'id' });
-}
 }

@@ -7,6 +7,7 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { PasswordService } from '../../services/password.service';
 import { EncryptionService } from '../../services/encryption.service';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { Observable } from 'rxjs';
 import { PasscodeDialogComponent } from '../passcode-dialog/passcode-dialog.component';
 
 @Component({
@@ -22,6 +23,7 @@ export class PasswordListComponent {
   private encryptionService = inject(EncryptionService);
   private dialog = inject(MatDialog);
 
+// TypeScript sẽ tự hiểu kiểu dữ liệu nhờ định nghĩa trong Service
   accounts = toSignal(this.passwordService.getAccounts(), { initialValue: [] });
   isLocked = computed(() => this.encryptionService.getIsLocked());
 
@@ -46,4 +48,13 @@ export class PasswordListComponent {
     navigator.clipboard.writeText(text);
     alert('Copied to clipboard!');
   }
+}
+
+export interface PasswordAccount {
+  id?: string;
+  appPath: string;
+  label: string;
+  username: string;
+  password: string;
+  createdAt?: any;
 }
